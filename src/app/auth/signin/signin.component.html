@@ -1,0 +1,17 @@
+<div class="container">
+  <br>
+  <div class="col-sm-6">
+      <form #f="ngForm">
+          <div class="form-group">
+            <label for="email">Email</label>
+            <input type="text" id="email" name="email" class="form-control" ngModel>
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" name="password" class="form-control" ngModel>
+          </div>
+          <button class="btn btn-primary" type="button" (click)="onSignIn()">Sign In</button>
+          <button class="btn btn-primary" type="button" (click)="onFacebookSignIn()">Continue with Facebook</button>
+        </form>  
+  </div>
+</div>
