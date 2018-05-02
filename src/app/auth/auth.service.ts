@@ -3,15 +3,16 @@ import * as firebase from 'firebase';
 export class AuthService {
     constructor() {
         this.provider = new firebase.auth.FacebookAuthProvider();
+        this.provider.addScope('user_friends');
         this.provider.setCustomParameters({'display': 'popup'});
         this.userName = 'Guest';
         this.authType = null;
         this.token = null;
     }
-    token: string;
+    private token: string;
     userName: string;
-    provider: firebase.auth.FacebookAuthProvider;
-    authType: string;
+    private provider: firebase.auth.FacebookAuthProvider;
+    private authType: string;
     signUpUser(email: string, password: string) {
         firebase.auth().createUserWithEmailAndPassword(email, password).then(response => {
             console.log(response);
@@ -69,17 +70,20 @@ export class AuthService {
     signInUserFacebook() {
         firebase.auth().signInWithPopup(this.provider).then(response => {
             console.log(response);
-            this.userName = firebase.auth().currentUser.displayName;
+            this.userName = response.user;
             this.authType = 'facebook'; // remove hardcoding later
-            firebase.auth().currentUser.getIdToken().then((token: string) => {
-                this.token = token;
-            }).catch(error => {
-                console.log(error);
-            });
-
+            this.token = response.credential.accessToken;
+            // firebase.auth().currentUser.getIdToken().then((token: string) => {
+            //     this.token = token;
+            // }).catch(error => {
+            //     console.log(error);
+            // });
         }).catch(error => {
             console.log(error);
         });
+    }
+    getFacebookToken() {
+        return this.token;
     }
 
 }
