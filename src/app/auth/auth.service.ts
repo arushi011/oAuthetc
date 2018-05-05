@@ -1,17 +1,28 @@
 import * as firebase from 'firebase';
+import { Router, ActivatedRoute } from '@angular/router';
+import { Injectable } from '@angular/core';
+import { Subject } from 'rxjs/Subject';
 
+@Injectable()
 export class AuthService {
-    constructor() {
-        this.provider = new firebase.auth.FacebookAuthProvider();
-        this.provider.addScope('user_friends');
-        this.provider.setCustomParameters({'display': 'popup'});
+    constructor(private routes : Router) {
+        this.fbProvider = new firebase.auth.FacebookAuthProvider();
+        this.fbProvider.addScope('user_friends');
+        this.fbProvider.setCustomParameters({'display': 'popup'});
+        this.gProvider = new firebase.auth.GoogleAuthProvider();
+        this.gProvider.addScope('https://www.googleapis.com/auth/contacts.readonly');
+        this.gProvider.setCustomParameters({
+            'login_hint': 'user@example.com'
+          });
         this.userName = 'Guest';
         this.authType = null;
         this.token = null;
     }
+    userNameChanged = new Subject<string>();
     private token: string;
     userName: string;
-    private provider: firebase.auth.FacebookAuthProvider;
+    private fbProvider: firebase.auth.FacebookAuthProvider;
+    private gProvider: firebase.auth.GoogleAuthProvider;
     private authType: string;
     signUpUser(email: string, password: string) {
         firebase.auth().createUserWithEmailAndPassword(email, password).then(response => {
@@ -20,6 +31,7 @@ export class AuthService {
             this.authType = 'email'; // remove hardcoding later
             firebase.auth().currentUser.getToken().then((token: string) => {
                 this.token = token;
+                this.routes.navigate(['../']);
             }).catch(error => {
                 console.log(error);
             });
@@ -36,6 +48,7 @@ export class AuthService {
                 firebase.auth().currentUser.getToken().then(
                     (token: string) => {
                         this.token = token;
+                        this.routes.navigate(['../']);
                     }
                 ).catch(
                     error => console.log(error)
@@ -51,6 +64,7 @@ export class AuthService {
         this.token = null;
         this.userName = 'Guest';
         this.authType = null;
+        this.userNameChanged.next(this.userName);
     }
     getToken() {
         firebase.auth().currentUser.getToken() // this is async and thus is a promise
@@ -68,11 +82,12 @@ export class AuthService {
     }
 
     signInUserFacebook() {
-        firebase.auth().signInWithPopup(this.provider).then(response => {
+        firebase.auth().signInWithPopup(this.fbProvider).then(response => {
             console.log(response);
-            this.userName = response.user;
+            this.userName = firebase.auth().currentUser.displayName;
             this.authType = 'facebook'; // remove hardcoding later
             this.token = response.credential.accessToken;
+            this.routes.navigate(['../']);
             // firebase.auth().currentUser.getIdToken().then((token: string) => {
             //     this.token = token;
             // }).catch(error => {
@@ -84,6 +99,16 @@ export class AuthService {
     }
     getFacebookToken() {
         return this.token;
+    }
+
+    signInUserGoogle() {
+        firebase.auth().signInWithPopup(this.gProvider).then(response=> {
+            console.log(response);
+            this.userName = firebase.auth().currentUser.displayName;
+            this.authType = 'google'; // remove hardcoding later
+            this.token = response.credential.accessToken;
+            this.routes.navigate([ '../']);
+        })
     }
 
 }

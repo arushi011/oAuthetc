@@ -22,5 +22,8 @@ export class SigninComponent implements OnInit {
   onFacebookSignIn() {
     this.authService.signInUserFacebook();
   }
+  onGoogleSignIn() {
+    this.authService.signInUserGoogle();
+  }
 
 }
